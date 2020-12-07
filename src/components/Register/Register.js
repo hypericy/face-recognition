@@ -33,9 +33,14 @@ class Register extends React.Component {
                 password: this.state.password
             })
         })
-            .then(response => response.json());
-            // .then(data => console.log(data));
-        this.props.onRouteChange('signout');
+            .then(response => response.json())
+            .then(data => {
+                if (data.id) {
+                    this.props.onRouteChange('signout');
+                }
+            });
+
+
 
     }
     render() {

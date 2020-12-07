@@ -5,14 +5,11 @@ import Logo from './components/Logo/Logo'
 import ImageLinkForm from './components/ImageLinkForm/ImageLinkForm'
 import Rank from './components/Rank/Rank'
 import Particles from 'react-particles-js';
-import Clarifai from 'clarifai';
 import FaceRecognition from './components/FaceRecognition/FaceRecognition'
 import SignIn from './components/SignIn/SignIn'
 import Resgister from './components/Register/Register'
 
-const app = new Clarifai.App({
-  apiKey: '1cd03f1ac99042079dd800ec49868432'
-});
+
 
 const particlesOptions = {
   "particles": {
@@ -40,7 +37,8 @@ class App extends React.Component {
       input: '',
       url: '',
       box: [],
-      route: 'signout'
+      route: 'signout',
+      user: {},
     }
   }
 
@@ -86,32 +84,45 @@ class App extends React.Component {
       url: this.state.input,
       box: []
     });
-    app.models.predict(Clarifai.FACE_DETECT_MODEL, this.state.input).then(
-      response => {
+    fetch('http://localhost:3000/imageUrl', {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: this.state.input
+      })
+    })
+      .then(response => response.json())
+      .then(response => {
         if (response) {
           fetch("http://localhost:3000/image", {
             method: 'put',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              id: this.state.user.id
+              id: this.state.user.id,
+              url: this.state.input
             })
           })
             .then(response => response.json())
             .then(data => {
-              this.setState(Object.assign(this.state.user,{ entries: data}))
+              this.setState(Object.assign(this.state.user, { entries: data }))
             })
-
         }
-        this.calculateFaceLocation(response)
-
+        this.calculateFaceLocation(response);
       })
-      .catch(err => console.log(err));
 
   }
+
+
   onRouteChange = (route) => {
+    if (route === 'signout') {
+      this.setState({
+        input: '',
+        url: '',
+        box: [],
+        user: {},
+      })
+    }
     this.setState({
-      url : '',
-      box: [],
       route: route
     })
   }
